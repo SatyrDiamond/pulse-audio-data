@@ -29,10 +29,34 @@ stream = p.open(format=FORMAT,
 
 import obj_pulseread
 
-datar = obj_pulseread.read_pulse(RATE, pulse_size)
+def Average(lst): return sum(lst) / len(lst) 
 
-for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
-	for x in range(CHUNK):
-		data = stream.read(1)
-		value = struct.unpack('h', data)[0]
-		datar.frame(value)
+
+while True:
+
+	calibration = obj_pulseread.read_pulse(RATE, 1)
+
+	for i in range(0, int(RATE / CHUNK * 7)):
+		for x in range(CHUNK):
+			if len(calibration.out_tab) != 200:
+				data = stream.read(1)
+				value = struct.unpack('h', data)[0]
+				calibration.frame(value)
+
+	ctab = calibration.out_tab[5:]
+	if len(ctab) != 0:
+		pulse_size = (Average(ctab)/44100)/2
+
+		print('pulse_size found', pulse_size)
+
+		datar = obj_pulseread.read_pulse(RATE, pulse_size)
+
+		for i in range(0, int(RATE / CHUNK * RECORD_SECONDS)):
+			for x in range(CHUNK):
+				data = stream.read(1)
+				value = struct.unpack('h', data)[0]
+				datar.frame(value)
+
+			if datar.out_tab[-1] > 30000: 
+				print('Signal Lost')
+				break
