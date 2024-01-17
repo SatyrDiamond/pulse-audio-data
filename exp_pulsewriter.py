@@ -6,11 +6,11 @@ import random
 
 
 
-pulse_size = 0.0055
+pulse_size = 0.0055/4
 
-splitnum = 24
+splitnum = 64
 
-filename = "purple doz.it"
+filename = "VENDOR.DOC"
 
 
 
@@ -33,7 +33,7 @@ class pulseclick:
 			if self.curpoint > 0.5: self.stage = 2
 
 		if self.stage == 2: 
-			self.curpoint -= 0.01*valmul
+			self.curpoint *= 0.92
 			if self.curpoint < 0: self.stage = 3
 
 		return self.curpoint
@@ -100,13 +100,13 @@ class pulsebreak:
 		self.end = False
 		self.splitnum = splitnum
 		self.current_chunk = 0
-		self.filename = filename.encode()
 		self.chunked_data = [self.bytesdata[i:i + self.splitnum] for i in range(0, len(self.bytesdata), self.splitnum)]
+		self.filename = self.splitnum.to_bytes(2, 'big') + len(self.chunked_data).to_bytes(2, 'big') + filename.encode()
 
 		print(len(self.chunked_data), 'chunks')
 
 		self.pb_bitstream = pb_bitstream(self.bytesdata)
-		self.currentstate = counter(170, 3)
+		self.currentstate = counter(1400, 3)
 
 	def get(self):
 

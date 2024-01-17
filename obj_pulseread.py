@@ -4,11 +4,11 @@ import numpy as np
 
 
 class read_pulse:
-	def __init__(self, hz, trigger_val):
+	def __init__(self, hz, pulse_size):
 		self.c = 20
 		self.t_enter = -15000
 		self.t_act = False
-		self.datar = read_num(hz, trigger_val)
+		self.datar = read_num(hz, pulse_size)
 		self.out_tab = [0]
 
 	def frame(self, t):
@@ -60,13 +60,13 @@ class binarydata:
 
 
 class read_num:
-	def __init__(self, hz, trigger_val):
+	def __init__(self, hz, pulse_size):
 		self.count = 0
 		self.stage = 0
 		self.filename = None
 		self.data_out = bytearray(b'')
 		self.hz = hz
-		self.trigger_val = trigger_val
+		self.pulse_size = pulse_size
 
 		self.check_headstart = countcheck(5, 20)
 		self.check_datastart = countcheck(6, 10)
@@ -82,7 +82,7 @@ class read_num:
 		self.chunknum = 0
 
 	def frame(self, outval):
-		outval = ((outval/self.hz)/(self.trigger_val/2))
+		outval = ((outval/self.hz)/(self.pulse_size/2))
 		outval = round(outval)
 
 		if self.check_headstart.check(outval):
@@ -93,8 +93,12 @@ class read_num:
 		if self.stage == 'filename':
 			self.binf_filename.frame(outval)
 			if outval == 7:
-				if not self.filename: self.filename = self.binf_filename.data_out.decode()
+				self.filename = self.binf_filename.data_out[4:].decode()
+				self.h_c_size = int.from_bytes(self.binf_filename.data_out[0:2], 'big')
+				self.h_d_size = int.from_bytes(self.binf_filename.data_out[2:4], 'big')
 				print('FILENAME: '+self.filename)
+				print('CHUNK SIZE: '+str(self.h_c_size))
+				print('SPLIT SIZE: '+str(self.h_d_size))
 				self.stage = 'data'
 				self.check_data_num = countcheck(6, 5)
 				self.check_data_data = countcheck(4, 5)
@@ -105,7 +109,7 @@ class read_num:
 		if self.stage == 'data':
 			if self.check_data_num.check(outval):
 				self.hasnum = True
-				if self.hasdata and self.hasnum:
+				if self.hasdata and self.hasnum and self.h_c_size == len(self.binf_datachunk.data_out):
 					self.datachunks[self.chunknum] = self.binf_datachunk.data_out
 					print(bytes(self.binf_datachunk.data_out))
 
@@ -116,7 +120,7 @@ class read_num:
 			if self.check_data_data.check(outval):
 				self.hasdata = True
 				self.chunknum = int.from_bytes(self.binf_datanum.data_out, 'big')
-				print('CHUNK #'+str(self.chunknum)+' |', end=' ')
+				print('CHUNK '+str(self.chunknum)+'/'+str(self.h_d_size)+' |', end=' ')
 				self.binf_datamode = 'raw'
 				self.binf_datachunk = binarydata()
 				self.datachunks[self.chunknum] = b''
@@ -138,15 +142,11 @@ class read_num:
 			self.stage = 'filename'
 
 			try: 
-				numchunks = len(self.datachunks)
-				lenlist = [len(self.datachunks[x]) for x in range(numchunks-1)]
-
-				if all(x==lenlist[0] for x in lenlist):
-					outdata = b''
-					for num in range(numchunks): outdata += self.datachunks[num]
-					f = open("out/"+self.filename, "wb")
-					f.write(outdata[:-1])
-					f.close()
+				outdata = b''
+				for num in range(self.h_d_size): outdata += self.datachunks[num]
+				f = open("out/"+self.filename, "wb")
+				f.write(outdata[:-1])
+				f.close()
 			except:
 				print("error")
 
