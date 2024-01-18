@@ -16,7 +16,7 @@ CHUNK = 512
 FORMAT = pyaudio.paInt16
 CHANNELS = 1
 RATE = 44100
-RECORD_SECONDS = 100
+RECORD_SECONDS = 100000
 WAVE_OUTPUT_FILENAME = "output.wav"
 
 p = pyaudio.PyAudio()
@@ -38,7 +38,7 @@ while True:
 
 	for i in range(0, int(RATE / CHUNK * 7)):
 		for x in range(CHUNK):
-			if len(calibration.out_tab) != 200:
+			if len(calibration.out_tab) != 40:
 				data = stream.read(1)
 				value = struct.unpack('h', data)[0]
 				calibration.frame(value)
