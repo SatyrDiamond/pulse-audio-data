@@ -6,11 +6,10 @@ import random
 
 
 
-pulse_size = 0.0055/4
-
+pulse_size = 0.0055/2
 splitnum = 64
 
-filename = "VENDOR.DOC"
+filename = "chipperdoodle.it"
 
 
 
@@ -21,7 +20,6 @@ class pulseclick:
 		self.curpoint = 0
 
 	def frame(self):
-
 		valmul = 2
 
 		if self.stage == 0: 
@@ -90,9 +88,13 @@ class counter:
 		else: 
 			return False, self.outv
 
+import zlib
+
 class pulsebreak:
-	def __init__(self, filename, i_bytes, splitnum):
-		self.bytesdata = i_bytes+b'\x00'
+	def __init__(self, filename, i_bytes, splitnum, startd):
+		self.bytesdata = zlib.compress(i_bytes)+b'\x00'
+		print('uncompressed', len(i_bytes))
+		print('compressed', len(self.bytesdata))
 		self.stage = 0
 		self.count = 100
 		self.b_bytenum = 0
@@ -106,7 +108,7 @@ class pulsebreak:
 		print(len(self.chunked_data), 'chunks')
 
 		self.pb_bitstream = pb_bitstream(self.bytesdata)
-		self.currentstate = counter(1400, 3)
+		self.currentstate = counter(startd, 3)
 
 	def get(self):
 
@@ -137,11 +139,14 @@ class pulsebreak:
 
 
 
+calccal = 200/(pulse_size/0.010)
 
 
+print(calccal)
 
-f = open(filename, "rb")
-numberd = pulsebreak(filename, f.read(), splitnum)
+
+f = open('files/'+filename, "rb")
+numberd = pulsebreak(filename, f.read(), splitnum, int(calccal))
 
 
 

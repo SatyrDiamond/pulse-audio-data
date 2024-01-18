@@ -58,6 +58,8 @@ class binarydata:
 
 
 
+import zlib
+from io import BytesIO
 
 class read_num:
 	def __init__(self, hz, pulse_size):
@@ -93,7 +95,8 @@ class read_num:
 		if self.stage == 'filename':
 			self.binf_filename.frame(outval)
 			if outval == 7:
-				self.filename = self.binf_filename.data_out[4:].decode()
+				try: self.filename = self.binf_filename.data_out[4:].decode()
+				except: self.filename = 'out.bin'
 				self.h_c_size = int.from_bytes(self.binf_filename.data_out[0:2], 'big')
 				self.h_d_size = int.from_bytes(self.binf_filename.data_out[2:4], 'big')
 				print('FILENAME: '+self.filename)
@@ -145,11 +148,10 @@ class read_num:
 				outdata = b''
 				for num in range(self.h_d_size): outdata += self.datachunks[num]
 				f = open("out/"+self.filename, "wb")
-				f.write(outdata[:-1])
+				f.write(zlib.decompress(outdata[:-1]))
 				f.close()
 			except:
 				print("error")
-
 
 
 

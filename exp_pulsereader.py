@@ -6,12 +6,6 @@ import obj_pulseread
 
 
 
-pulse_size = 0.0055
-
-
-
-
-
 
 with wave.open('output_wavfile.wav','r') as wav_file:
 	signal = wav_file.readframes(-1)
