@@ -8,14 +8,14 @@ import obj_pulsewrite
 
 
 
-pulse_size = 0.0022
+pulse_size = 0.0005
 splitnum = 32
-RATE = 16000
+RATE = 44100
 filename = "exp_pulsereader.py"
 
 
 
-
+print(filename)
 
 
 
@@ -28,7 +28,7 @@ CHUNK = 1024
 f = open('files/'+filename, "rb")
 sd.default.channels = 1
 sd.default.samplerate = RATE
-samplemake = obj_pulsewrite.writer(splitnum, pulse_size, RATE, f)
+samplemake = obj_pulsewrite.writer(splitnum, pulse_size, RATE, f, filename)
 def callback(indata, outdata, frames, time, status):
 	if status: print(status)
 	chunk = b''
