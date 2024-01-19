@@ -9,9 +9,6 @@ import random
 pulse_size = 0.03
 splitnum = 64
 
-filename = "chipperdoodle.it"
-
-
 
 
 class pulseclick:
@@ -137,7 +134,7 @@ class pulsebreak:
 
 
 class writer:
-	def __init__(self, splitnum, pulse_size, freq, f):
+	def __init__(self, splitnum, pulse_size, freq, f, filename):
 		self.numberd = pulsebreak(filename, f.read(), splitnum, int( 200/(pulse_size/0.010) ))
 		self.pulser = pulseclick()
 		self.pulse_size_o = (freq*pulse_size/2)
